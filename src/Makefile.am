@@ -5,7 +5,7 @@
 
 libp4est_generated_headers = src/p4est_config.h
 libp4est_installed_headers = src/p4est_base.h \
-        src/pdest.h src/pdest_p4est_to_p8est.h
+        src/pdest.h
 libp4est_internal_headers =
 libp4est_compiled_sources = src/p4est_base.c \
         src/pdest.c
@@ -43,7 +43,7 @@ libp4est_installed_headers += \
         src/p8est_iterate.h src/p8est_lnodes.h src/p8est_mesh.h \
         src/p8est_tets_hexes.h src/p8est_balance.h src/p8est_io.h \
         src/p8est_wrap.h src/p8est_plex.h \
-        src/pdest_p8est.h
+        src/pdest_p4est_to_p8est.h src/pdest_p8est.h
 libp4est_compiled_sources += \
         src/p8est_connectivity.c src/p8est.c \
         src/p8est_bits.c src/p8est_search.c \

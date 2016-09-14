@@ -22,22 +22,31 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
+#include <pdest.h>
+#ifdef P4EST_ENABLE_BUILD_2D
 #include <pdest_p4est.h>
 #include <p4est_algorithms.h>
 #include <p4est_bits.h>
 #include <p4est_communication.h>
+#endif
+#ifdef P4EST_ENABLE_BUILD_3D
 #include <pdest_p8est.h>
 #include <p8est_algorithms.h>
 #include <p8est_bits.h>
 #include <p8est_communication.h>
+#endif
 
 int
 pdest_object_is_valid (const pdest_object_t * ob)
 {
-  return
-    (ob != NULL) &&
-    sc_refcount_is_active (&ob->rc) &&
-    (ob->dim == 2 || ob->dim == 3) &&
+  return (ob != NULL) && sc_refcount_is_active (&ob->rc) && (
+#ifdef P4EST_ENABLE_BUILD_2D
+                                                              ob->dim == 2 ||
+#endif
+#ifdef P4EST_ENABLE_BUILD_3D
+                                                              ob->dim == 3 ||
+#endif
+                                                              0) &&
     (ob->typ != PDEST_TYPE_INVALID) && (ob->ject != NULL);
 }
 
@@ -64,7 +73,7 @@ pdest_object_unref (pdest_object_t * ob)
     if (ob->jown) {
       /* only destroy payload if we own it */
       if (ob->dim == 2) {
-#ifdef P4EST_BUILD_2D
+#ifdef P4EST_ENABLE_BUILD_2D
         pdest_p4est_ject_destroy (ob->typ, ob->ject);
 #else
         SC_ABORT_NOT_REACHED ();
@@ -72,7 +81,7 @@ pdest_object_unref (pdest_object_t * ob)
       }
       else {
         P4EST_ASSERT (ob->dim == 3);
-#ifdef P4EST_BUILD_3D
+#ifdef P4EST_ENABLE_BUILD_3D
         pdest_p8est_ject_destroy (ob->typ, ob->ject);
 #else
         SC_ABORT_NOT_REACHED ();
@@ -146,10 +155,18 @@ pdest_quadrant_is_valid (const pdest_quadrant_t * quadrant)
     return 0;
   }
   if (quadrant->z == -1) {
+#ifdef P4EST_ENABLE_BUILD_2D
     return pdest_p4est_quadrant_is_valid (quadrant);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     return pdest_p8est_quadrant_is_valid (quadrant);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -176,17 +193,25 @@ pdest_quadrant_is_ancestor (const pdest_quadrant_t * q,
     return 0;
   }
   if (dq == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     p4est_quadrant_t    pq, pr;
     pdest_quadrant_to_p4est (&pq, q);
     pdest_quadrant_to_p4est (&pr, r);
     return p4est_quadrant_is_ancestor (&pq, &pr);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     P4EST_ASSERT (dq == 3);
     p8est_quadrant_t    pq, pr;
     pdest_quadrant_to_p8est (&pq, q);
     pdest_quadrant_to_p8est (&pr, r);
     return p8est_quadrant_is_ancestor (&pq, &pr);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -205,6 +230,7 @@ pdest_quadrant_length (const pdest_quadrant_t * quadrant, int *dim,
   P4EST_ASSERT (pdest_quadrant_is_valid (quadrant));
 
   if (quadrant->z == -1) {
+#ifdef P4EST_ENABLE_BUILD_2D
     if (dim != NULL) {
       *dim = P4EST_DIM;
     }
@@ -214,8 +240,12 @@ pdest_quadrant_length (const pdest_quadrant_t * quadrant, int *dim,
     if (root_len != NULL) {
       *root_len = P4EST_ROOT_LEN;
     }
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     if (dim != NULL) {
       *dim = P8EST_DIM;
     }
@@ -225,6 +255,9 @@ pdest_quadrant_length (const pdest_quadrant_t * quadrant, int *dim,
     if (root_len != NULL) {
       *root_len = P8EST_ROOT_LEN;
     }
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -234,7 +267,17 @@ pdest_qmaxlevel (const pdest_object_t * ob)
   P4EST_ASSERT (pdest_object_is_valid (ob));
   P4EST_ASSERT (ob->typ == PDEST_TYPE_FOREST);
 
-  return ob->dim == 2 ? P4EST_QMAXLEVEL : P8EST_QMAXLEVEL;
+#ifdef P4EST_ENABLE_BUILD_2D
+  if (ob->dim == 2) {
+    return P4EST_QMAXLEVEL;
+  }
+#endif
+#ifdef P4EST_ENABLE_BUILD_3D
+  if (ob->dim == 3) {
+    return P8EST_QMAXLEVEL;
+  }
+#endif
+  SC_ABORT_NOT_REACHED ();
 }
 
 int
@@ -242,10 +285,18 @@ pdest_is_valid (pdest_object_t * ob_p4est)
 {
   P4EST_ASSERT (pdest_object_is_valid (ob_p4est));
   if (ob_p4est->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     return p4est_is_valid (pdest_p4est_access (ob_p4est));
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     return p8est_is_valid (pdest_p8est_access (ob_p4est));
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -254,10 +305,18 @@ pdest_revision (pdest_object_t * ob_p4est)
 {
   P4EST_ASSERT (pdest_object_is_valid (ob_p4est));
   if (ob_p4est->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     return p4est_revision (pdest_p4est_access (ob_p4est));
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     return p8est_revision (pdest_p8est_access (ob_p4est));
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -266,10 +325,18 @@ pdest_mpicomm (pdest_object_t * ob_p4est)
 {
   P4EST_ASSERT (pdest_object_is_valid (ob_p4est));
   if (ob_p4est->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     return pdest_p4est_access (ob_p4est)->mpicomm;
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     return pdest_p8est_access (ob_p4est)->mpicomm;
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -295,6 +362,7 @@ pdest_info (pdest_object_t * ob_p4est, pdest_info_t * info)
   P4EST_ASSERT (info != NULL);
 
   if ((info->dim = ob_p4est->dim) == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     p4est_t            *p4est = pdest_p4est_access (ob_p4est);
     info->revision = p4est->revision;
     info->first_local_tree = p4est->first_local_tree;
@@ -304,8 +372,12 @@ pdest_info (pdest_object_t * ob_p4est, pdest_info_t * info)
     info->global_quadrants_offset =
       p4est->global_first_quadrant[p4est->mpirank];
     info->data_size = p4est->data_size;
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     p8est_t            *p8est = pdest_p8est_access (ob_p4est);
     info->revision = p8est->revision;
     info->first_local_tree = p8est->first_local_tree;
@@ -315,6 +387,9 @@ pdest_info (pdest_object_t * ob_p4est, pdest_info_t * info)
     info->global_quadrants_offset =
       p8est->global_first_quadrant[p8est->mpirank];
     info->data_size = p8est->data_size;
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -326,6 +401,7 @@ pdest_tree_info (pdest_object_t * ob_p4est, p4est_topidx_t which_tree,
   P4EST_ASSERT (tree_info != NULL);
 
   if ((tree_info->dim = ob_p4est->dim) == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     p4est_t            *p4est = pdest_p4est_access (ob_p4est);
     p4est_tree_t       *tree;
 
@@ -348,8 +424,12 @@ pdest_tree_info (pdest_object_t * ob_p4est, p4est_topidx_t which_tree,
       P4EST_ASSERT (which_tree <= p4est->last_local_tree);
       tree_info->quadrants = &tree->quadrants;
     }
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     p8est_t            *p8est = pdest_p8est_access (ob_p4est);
     p8est_tree_t       *tree;
 
@@ -372,6 +452,9 @@ pdest_tree_info (pdest_object_t * ob_p4est, p4est_topidx_t which_tree,
       P4EST_ASSERT (which_tree <= p8est->last_local_tree);
       tree_info->quadrants = &tree->quadrants;
     }
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -387,17 +470,25 @@ pdest_quadrant_index (pdest_quadrant_t * quadrant, const
 
   P4EST_ASSERT (0 <= n && n < tree_info->tree_num_quadrants);
   if (tree_info->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     P4EST_ASSERT (tree_info->quadrants->elem_size ==
                   sizeof (p4est_quadrant_t));
     pdest_quadrant_from_p4est
       (quadrant, p4est_quadrant_array_index (tree_info->quadrants, n));
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     P4EST_ASSERT (tree_info->dim == 3);
     P4EST_ASSERT (tree_info->quadrants->elem_size ==
                   sizeof (p8est_quadrant_t));
     pdest_quadrant_from_p8est
       (quadrant, p8est_quadrant_array_index (tree_info->quadrants, n));
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -409,16 +500,24 @@ pdest_quadrant_is_contained (pdest_object_t * ob_p4est,
   P4EST_ASSERT (pdest_object_is_valid (ob_p4est));
   P4EST_ASSERT (pdest_quadrant_is_valid (quadrant));
   if (ob_p4est->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     p4est_quadrant_t    p4est_quadrant;
     pdest_quadrant_to_p4est (&p4est_quadrant, quadrant);
     return p4est_comm_is_contained (pdest_p4est_access (ob_p4est),
                                     which_tree, &p4est_quadrant, rank);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     p8est_quadrant_t    p8est_quadrant;
     pdest_quadrant_to_p8est (&p8est_quadrant, quadrant);
     return p8est_comm_is_contained (pdest_p8est_access (ob_p4est),
                                     which_tree, &p8est_quadrant, rank);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -429,12 +528,20 @@ pdest_new_conn (sc_MPI_Comm mpicomm, pdest_object_t * ob_conn,
 {
   P4EST_ASSERT (pdest_object_is_valid (ob_conn));
   if (ob_conn->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     return pdest_p4est_new_conn (mpicomm, ob_conn, min_level, data_size,
                                  p4est_user_pointer, init_fn, user_pointer);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     return pdest_p8est_new_conn (mpicomm, ob_conn, min_level, data_size,
                                  p4est_user_pointer, init_fn, user_pointer);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -443,10 +550,18 @@ pdest_new_copy (pdest_object_t * ob_p4est, int copy_data)
 {
   P4EST_ASSERT (pdest_object_is_valid (ob_p4est));
   if (ob_p4est->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     return pdest_p4est_new_copy (ob_p4est, copy_data);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     return pdest_p8est_new_copy (ob_p4est, copy_data);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -458,12 +573,20 @@ pdest_refine (pdest_object_t * ob_p4est,
 {
   P4EST_ASSERT (pdest_object_is_valid (ob_p4est));
   if (ob_p4est->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     pdest_p4est_refine (ob_p4est, refine_recursive, maxlevel,
                         refine_fn, init_fn, replace_fn, user_pointer);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     pdest_p8est_refine (ob_p4est, refine_recursive, maxlevel,
                         refine_fn, init_fn, replace_fn, user_pointer);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -475,12 +598,20 @@ pdest_coarsen (pdest_object_t * ob_p4est,
 {
   P4EST_ASSERT (pdest_object_is_valid (ob_p4est));
   if (ob_p4est->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     pdest_p4est_coarsen (ob_p4est, coarsen_recursive, callback_orphans,
                          coarsen_fn, init_fn, replace_fn, user_pointer);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     pdest_p8est_coarsen (ob_p4est, coarsen_recursive, callback_orphans,
                          coarsen_fn, init_fn, replace_fn, user_pointer);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -490,12 +621,20 @@ pdest_partition (pdest_object_t * ob_p4est, int partition_for_coarsening,
 {
   P4EST_ASSERT (pdest_object_is_valid (ob_p4est));
   if (ob_p4est->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     pdest_p4est_partition (ob_p4est, partition_for_coarsening,
                            weight_fn, user_pointer);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     pdest_p8est_partition (ob_p4est, partition_for_coarsening,
                            weight_fn, user_pointer);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
 
@@ -504,9 +643,17 @@ pdest_user_pointer (pdest_object_t * ob_p4est)
 {
   P4EST_ASSERT (pdest_object_is_valid (ob_p4est));
   if (ob_p4est->dim == 2) {
+#ifdef P4EST_ENABLE_BUILD_2D
     return pdest_p4est_user_pointer (ob_p4est);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
   else {
+#ifdef P4EST_ENABLE_BUILD_3D
     return pdest_p8est_user_pointer (ob_p4est);
+#else
+    SC_ABORT_NOT_REACHED ();
+#endif
   }
 }
