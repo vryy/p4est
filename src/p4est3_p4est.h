@@ -22,31 +22,17 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#include <p4est3_p4est.h>
+#ifndef P4EST3_P4EST_H
+#define P4EST3_P4EST_H
 
-struct p4est3
-{
-  p4est_t            *p4est;
+#include <p4est.h>
+#include <p4est3.h>
 
-  /* ... */
-};
+/* attributes: maybe set existing connectivity or p4est from v2 API */
 
-struct p4est3_connectivity
-{
-  p4est_connectivity_t *conn;
+p4est3_connectivity_t *p4est3_connectivity_new_p4est (p4est_connectivity_t *
+                                                      conn);
 
-  /* ... */
-};
+p4est3_t           *p4est3_new_p4est (p4est_t * p4est);
 
-typedef struct p4est3_quad_fat
-{
-  p4est_quadrant_t    quadrant;
-#if 0
-  /* Maybe, just maybe, we introduce extra variables for internal storage.
-     We might not ever, though, to keep data size the same as p4est_quadrant_t. */
-  /* In any case, p4est_quadrant_t, p4est3_quadrant_t, and this one are castable. */
-  int                 a;
-  char                b;
-#endif
-}
-p4est3_quad_fat;
+#endif /* !P4EST3_P4EST_H */
