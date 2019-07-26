@@ -1,24 +1,24 @@
 /*
-  This file is part of p4est.
-  p4est is a C library to manage a collection (a forest) of multiple
+  This file is part of p8est.
+  p8est is a C library to manage a collection (a forest) of multiple
   connected adaptive quadtrees or octrees in parallel.
 
   Copyright (C) 2010 The University of Texas System
   Additional copyright (C) 2011 individual authors
   Written by Carsten Burstedde, Lucas C. Wilcox, and Tobin Isaac
 
-  p4est is free software; you can redistribute it and/or modify
+  p8est is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  p4est is distributed in the hope that it will be useful,
+  p8est is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with p4est; if not, write to the Free Software Foundation, Inc.,
+  along with p8est; if not, write to the Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
@@ -69,7 +69,7 @@ void                p8est_vtk_write_file (p8est_t * p8est,
  * The process can be aborted any time by destroying the context.  In this
  * case, open files are closed cleanly with only partially written content.
  *
- * \param p4est     The p8est to be written.
+ * \param p8est     The p8est to be written.
  *                  If no geometry is specified in
  *                  \ref p8est_vtk_context_set_geom, we require
  *                  \b p8est->connectivity to have valid vertex arrays.
@@ -81,7 +81,7 @@ void                p8est_vtk_write_file (p8est_t * p8est,
  *                  needed to remain alive after calling this function.
  * \return          A VTK context fur further use.
  */
-p8est_vtk_context_t *p8est_vtk_context_new (p8est_t * p4est,
+p8est_vtk_context_t *p8est_vtk_context_new (p8est_t * p8est,
                                             const char *filename);
 
 /** Modify the geometry transformation registered in the context.
@@ -180,8 +180,8 @@ p8est_vtk_context_t *p8est_vtk_write_header (p8est_vtk_context_t * cont);
  * Each 'fieldname' argument shall be a char string containing the name of the data
  * contained in the following 'fieldvalues'.  Each of the 'fieldvalues'
  * arguments shall be an sc_array_t * holding double variables.  The number of
- * doubles in each sc_array must be exactly \a p4est->local_num_quadrants for
- * scalar data and \a 3*p4est->local_num_quadrants for vector data.
+ * doubles in each sc_array must be exactly \a p8est->local_num_quadrants for
+ * scalar data and \a 3*p8est->local_num_quadrants for vector data.
  *
  * \note The current p8est_vtk_context_t structure, \a cont, must be the first
  * and the last argument
@@ -236,6 +236,74 @@ p8est_vtk_context_t *p8est_vtk_write_point_dataf (p8est_vtk_context_t * cont,
                                                   int num_point_scalars,
                                                   int num_point_vectors, ...);
 
+/** Write a point scalar field to the VTU file.
+ *
+ * Writing a VTK file is split into a few routines.
+ * This allows there to be an arbitrary number of fields.
+ * When in doubt, please use \ref p8est_vtk_write_point_data instead.
+ *
+ * \param [in,out] cont    A VTK context created by \ref p8est_vtk_context_new.
+ * \param [in] scalar_name The name of the scalar field.
+ * \param [in] values      The point values that will be written.
+ *
+ * \return          On success, the context that has been passed in.
+ *                  On failure, returns NULL and deallocates the context.
+ */
+p8est_vtk_context_t *p8est_vtk_write_point_scalar (p8est_vtk_context_t *cont,
+                                                   const char *scalar_name,
+                                                   sc_array_t * values);
+
+/** Write a cell scalar field to the VTU file.
+ *
+ * Writing a VTK file is split into a few routines.
+ * This allows there to be an arbitrary number of fields.
+ * When in doubt, please use \ref p8est_vtk_write_cell_data instead.
+ *
+ * \param [in,out] cont    A VTK context created by \ref p8est_vtk_context_new.
+ * \param [in] scalar_name The name of the scalar field.
+ * \param [in] values      The cell values that will be written.
+ *
+ * \return          On success, the context that has been passed in.
+ *                  On failure, returns NULL and deallocates the context.
+ */
+p8est_vtk_context_t *p8est_vtk_write_cell_scalar (p8est_vtk_context_t *cont,
+                                                  const char *scalar_name,
+                                                  sc_array_t * values);
+
+/** Write a 3-vector cell field to the VTU file.
+ *
+ * Writing a VTK file is split into a few routines.
+ * This allows there to be an arbitrary number of fields.
+ * When in doubt, please use \ref p8est_vtk_write_cell_data instead.
+ *
+ * \param [in,out] cont    A VTK context created by \ref p8est_vtk_context_new.
+ * \param [in] vector_name The name of the vector field.
+ * \param [in] values      The cell values that will be written.
+ *
+ * \return          On success, the context that has been passed in.
+ *                  On failure, returns NULL and deallocates the context.
+ */
+p8est_vtk_context_t *p8est_vtk_write_cell_vector (p8est_vtk_context_t *cont,
+                                                  const char *vector_name,
+                                                  sc_array_t * values);
+
+/** Write a 3-vector point field to the VTU file.
+ *
+ * Writing a VTK file is split into a few routines.
+ * This allows there to be an arbitrary number of fields.
+ * When in doubt, please use \ref p8est_vtk_write_point_data instead.
+ *
+ * \param [in,out] cont    A VTK context created by \ref p8est_vtk_context_new.
+ * \param [in] vector_name The name of the vector field.
+ * \param [in] values      The point values that will be written.
+ *
+ * \return          On success, the context that has been passed in.
+ *                  On failure, returns NULL and deallocates the context.
+ */
+p8est_vtk_context_t *p8est_vtk_write_point_vector (p8est_vtk_context_t *cont,
+                                                   const char *vector_name,
+                                                   sc_array_t * values);
+
 /** Write the VTU footer and clean up.
  *
  * Writing a VTK file is split into a few routines.
@@ -247,6 +315,14 @@ p8est_vtk_context_t *p8est_vtk_write_point_dataf (p8est_vtk_context_t * cont,
  * \return          This returns 0 if no error and -1 if there is an error.
  */
 int                 p8est_vtk_write_footer (p8est_vtk_context_t * cont);
+
+/** Obtain the handler for the VTU file.
+ *
+ * \param [in] cont Context is deallocated before the function returns.
+ *
+ * \return          This returns the file handler.
+ */
+FILE                *p8est_vtk_get_vtu_file_hanlder (p8est_vtk_context_t * cont);
 
 SC_EXTERN_C_END;
 
