@@ -35,6 +35,21 @@
 #include <p8est_geometry.h>
 #include <p8est.h>
 
+#ifndef P4EST_VTK_DOUBLES
+#define P4EST_VTK_FLOAT_NAME "Float32"
+#define P4EST_VTK_FLOAT_TYPE float
+#else
+#define P4EST_VTK_FLOAT_NAME "Float64"
+#define P4EST_VTK_FLOAT_TYPE double
+#endif
+
+#ifndef P4EST_VTK_BINARY
+#define P4EST_VTK_ASCII 1
+#define P4EST_VTK_FORMAT_STRING "ascii"
+#else
+#define P4EST_VTK_FORMAT_STRING "binary"
+#endif
+
 SC_EXTERN_C_BEGIN;
 
 /** Opaque context type for writing VTK output with multiple function calls.
@@ -323,6 +338,14 @@ int                 p8est_vtk_write_footer (p8est_vtk_context_t * cont);
  * \return          This returns the file handler.
  */
 FILE                *p8est_vtk_get_vtu_file_hanlder (p8est_vtk_context_t * cont);
+
+/** Obtain the handler for the PVTU file.
+ *
+ * \param [in] cont Context is deallocated before the function returns.
+ *
+ * \return          This returns the file handler.
+ */
+FILE                *p8est_vtk_get_pvtu_file_hanlder (p8est_vtk_context_t * cont);
 
 SC_EXTERN_C_END;
 

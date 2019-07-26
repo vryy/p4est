@@ -46,20 +46,7 @@ static const int    p4est_vtk_wrap_rank = 0;
 #define p4est_vtk_context               p8est_vtk_context
 #endif
 
-#ifndef P4EST_VTK_DOUBLES
-#define P4EST_VTK_FLOAT_NAME "Float32"
-#define P4EST_VTK_FLOAT_TYPE float
-#else
-#define P4EST_VTK_FLOAT_NAME "Float64"
-#define P4EST_VTK_FLOAT_TYPE double
-#endif
-
-#ifndef P4EST_VTK_BINARY
-#define P4EST_VTK_ASCII 1
-#define P4EST_VTK_FORMAT_STRING "ascii"
-#else
-#define P4EST_VTK_FORMAT_STRING "binary"
-
+#ifdef P4EST_VTK_BINARY
 static int
 p4est_vtk_write_binary (FILE * vtkfile, char *numeric_data,
                         size_t byte_length)
@@ -1653,4 +1640,10 @@ FILE *
 p4est_vtk_get_vtu_file_hanlder (p4est_vtk_context_t * cont)
 {
   return cont->vtufile;
+}
+
+FILE *
+p4est_vtk_get_pvtu_file_hanlder (p4est_vtk_context_t * cont)
+{
+  return cont->pvtufile;
 }

@@ -384,6 +384,7 @@
 #define p4est_vtk_write_cell_vector     p8est_vtk_write_cell_vector
 #define p4est_vtk_write_footer          p8est_vtk_write_footer
 #define p4est_vtk_get_vtu_file_hanlder  p8est_vtk_get_vtu_file_hanlder
+#define p4est_vtk_get_pvtu_file_hanlder p8est_vtk_get_pvtu_file_hanlder
 
 /* functions in p4est_ghost */
 #define p4est_quadrant_find_owner       p8est_quadrant_find_owner
